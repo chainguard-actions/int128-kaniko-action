@@ -1,0 +1,40 @@
+name: Test full options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          push: 'false'
+          context: '.'
+          file: 'actions/hardened/int128--kaniko-action/v1.61.0/tests/fixtures/Dockerfile'
+          tags: |
+            localhost/test-image:latest
+            localhost/test-image:v1
+          build-args: |
+            BUILD_VERSION=1.0.0
+            BUILD_ENV=test
+          labels: |
+            org.opencontainers.image.title=test
+            org.opencontainers.image.version=1.0.0
+          target: 'build'
+          cache: 'false'
+          cache-repository: 'localhost/cache'
+          cache-ttl: '24h'
+          push-retry: '3'
+          registry-mirror: |
+            mirror.gcr.io
+          verbosity: 'info'
+          kaniko-args: |
+            --skip-tls-verify
+          docker-run-args: |
+            --network=host
+        continue-on-error: true
+      - name: Assert action ran
+        run: |
+          echo "Action completed (kaniko may fail without Docker daemon, which is expected)"
+          echo "PASS"

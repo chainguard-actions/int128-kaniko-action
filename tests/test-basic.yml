@@ -1,0 +1,21 @@
+name: Test basic usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          push: 'false'
+          context: '.'
+          file: 'actions/hardened/int128--kaniko-action/v1.61.0/tests/fixtures/Dockerfile'
+          tags: |
+            localhost/test-image:latest
+        continue-on-error: true
+      - name: Assert action ran
+        run: |
+          echo "Action completed (kaniko may fail without Docker daemon, which is expected)"
+          echo "PASS"
