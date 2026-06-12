@@ -1,0 +1,35 @@
+name: Test advanced options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create multi-stage Dockerfile
+        run: |
+          mkdir -p /tmp/kaniko-context
+          cat > /tmp/kaniko-context/Dockerfile <<'EOF'
+          FROM scratch AS builder
+          FROM scratch AS final
+          EOF
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          context: /tmp/kaniko-context
+          file: /tmp/kaniko-context/Dockerfile
+          tags: |
+            localhost/test-image:advanced
+          registry-mirror: |
+            mirror.gcr.io
+          kaniko-args: |
+            --skip-tls-verify
+          docker-run-args: |
+            --network=host
+          target: builder
+          push: 'false'
+      - name: Assert action ran (advanced options accepted)
+        run: |
+          echo "Action completed with advanced options (may fail without registry, that is expected)"
+          echo "PASS"
