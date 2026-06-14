@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>int128/renovate-base",
+    "github>int128/typescript-action-renovate-config#v1.10.0",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Kaniko version",
+      "fileMatch": ["^README.md$", "^action.yaml$"],
+      "matchStrings": ["gcr.io/kaniko-project/executor:(?<currentValue>[a-z0-9\\.]+)"],
+      "depNameTemplate": "gcr.io/kaniko-project/executor",
+      "datasourceTemplate": "docker"
+    }
+  ],
+  "platformAutomerge": true
+}

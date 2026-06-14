@@ -1,0 +1,45 @@
+name: Test all inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create Dockerfile with build args and target
+        run: |
+          mkdir -p /tmp/kaniko-context
+          cat > /tmp/kaniko-context/Dockerfile <<'EOF'
+          ARG MY_ARG=default
+          FROM scratch AS base
+          LABEL arg_value=$MY_ARG
+          FROM base AS final
+          EOF
+      - id: action
+        uses: .
+        with:
+          context: /tmp/kaniko-context
+          file: /tmp/kaniko-context/Dockerfile
+          push: 'false'
+          tags: |
+            localhost/test-image:latest
+          labels: |
+            org.opencontainers.image.title=test-all-inputs
+          build-args: |
+            MY_ARG=hello
+          target: final
+          cache: 'false'
+          cache-repository: localhost/cache
+          cache-ttl: 24h
+          push-retry: '1'
+          registry-mirror: |
+            mirror.gcr.io
+          verbosity: info
+          kaniko-args: |
+            --no-push
+          docker-run-args: |
+            --rm
+      - name: Assert action completed
+        run: |
+          echo "Action completed successfully with all inputs"
+          echo "PASS"
