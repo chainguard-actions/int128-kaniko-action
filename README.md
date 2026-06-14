@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v1.61.0 | [`v1.61.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.61.0) | [`da269a7`](https://github.com/int128/kaniko-action/commit/da269a7a54e14f122d2aeccb80d86755876ca1bf) |
+| v1.62.0 | [`v1.62.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.62.0) | [`56c20b6`](https://github.com/int128/kaniko-action/commit/56c20b6005e52f650d9d6cbf58f7bf7f8e0184bb) |
 | v1.63.0 | [`v1.63.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.63.0) | [`d018e2f`](https://github.com/int128/kaniko-action/commit/d018e2f85131120444662f019b17e017b2545e69) |
 | v1.64.0 | [`v1.64.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.64.0) | [`a0a6dbf`](https://github.com/int128/kaniko-action/commit/a0a6dbfbc587c46807c6367bc0118f01edd11764) |
 
