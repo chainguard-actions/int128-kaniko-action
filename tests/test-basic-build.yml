@@ -1,0 +1,63 @@
+name: Test basic build (no push)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up mock docker
+        run: |
+          mkdir -p "$HOME/bin"
+          cat > "$HOME/bin/docker" <<'MOCKEOF'
+          #!/bin/bash
+          set -e
+          if [ "$1" = "pull" ]; then
+            echo "Mock: docker pull $2"
+            exit 0
+          fi
+          if [ "$1" = "run" ]; then
+            echo "Mock: docker run called"
+            prev=""
+            for arg in "$@"; do
+              if [ "$prev" = "-v" ]; then
+                host_path="${arg%%:*}"
+                rest="${arg#*:}"
+                container_path="${rest%%:*}"
+                if [ "$container_path" = "/kaniko/action/outputs" ]; then
+                  echo "sha256:abc123fakedigest" > "$host_path/digest"
+                  echo "Mock: wrote digest to $host_path/digest"
+                fi
+              fi
+              prev="$arg"
+            done
+            exit 0
+          fi
+          echo "Mock: unknown docker command: $@"
+          exit 1
+          MOCKEOF
+          chmod +x "$HOME/bin/docker"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare docker config
+        run: |
+          mkdir -p "$HOME/.docker"
+          echo '{}' > "$HOME/.docker/config.json"
+
+      - id: action
+        uses: .
+        with:
+          push: 'false'
+          context: ${{ github.workspace }}/pristine/int128--kaniko-action/v1.65.0/tests/fixtures
+
+      - name: Assert digest output
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "digest: $DIGEST"
+          if [ -z "$DIGEST" ]; then
+            echo "FAIL: expected digest output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
