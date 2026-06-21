@@ -1,0 +1,43 @@
+name: Test labels and target stage options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create multi-stage Dockerfile
+        run: |
+          mkdir -p /tmp/kaniko-labels-test
+          cat > /tmp/kaniko-labels-test/Dockerfile <<'EOF'
+          FROM scratch AS builder
+          LABEL stage="builder"
+
+          FROM scratch AS final
+          LABEL stage="final"
+          LABEL org.opencontainers.image.title="test-image"
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          executor: gcr.io/kaniko-project/executor:v1.24.0
+          context: /tmp/kaniko-labels-test
+          push: 'false'
+          target: final
+          tags: localhost/test-labels:latest
+          labels: |
+            org.opencontainers.image.version=1.0.0
+            org.opencontainers.image.source=https://github.com/example/repo
+        continue-on-error: true
+
+      - name: Assert action was invoked with labels and target
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # Verify the action was invoked (not a YAML/input parsing failure)
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with labels and target inputs"

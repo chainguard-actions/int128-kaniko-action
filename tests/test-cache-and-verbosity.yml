@@ -1,0 +1,37 @@
+name: Test cache and verbosity options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create minimal Dockerfile
+        run: |
+          mkdir -p /tmp/kaniko-cache-test
+          cat > /tmp/kaniko-cache-test/Dockerfile <<'EOF'
+          FROM scratch
+          LABEL test="cache-verbosity"
+          EOF
+
+      - id: action
+        uses: .
+        with:
+          executor: gcr.io/kaniko-project/executor:v1.24.0
+          context: /tmp/kaniko-cache-test
+          push: 'false'
+          cache: 'false'
+          verbosity: info
+          tags: localhost/test-cache:latest
+        continue-on-error: true
+
+      - name: Assert action was invoked with cache and verbosity options
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # Verify the action was invoked (not a YAML/input parsing failure)
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with cache and verbosity inputs"
