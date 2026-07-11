@@ -1,0 +1,21 @@
+name: Test cache options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          cache: 'false'
+          cache-repository: ghcr.io/example/cache
+          cache-ttl: 24h
+          push: 'false'
+          tags: |
+            ghcr.io/example/image:cache-test
+      - name: Assert action completed
+        run: |
+          echo "Action completed successfully with cache-repository and cache-ttl inputs"
+          echo "PASS"

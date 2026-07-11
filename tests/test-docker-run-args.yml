@@ -1,0 +1,20 @@
+name: Test docker-run-args input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          push: 'false'
+          docker-run-args: |
+            --memory=2g
+          tags: |
+            ghcr.io/example/image:docker-run-args-test
+      - name: Assert action completed
+        run: |
+          echo "Action completed successfully with docker-run-args input"
+          echo "PASS"

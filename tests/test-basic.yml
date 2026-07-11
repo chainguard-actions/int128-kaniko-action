@@ -1,0 +1,57 @@
+name: Test basic build (no push)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install fake docker for kaniko simulation
+        run: |
+          cat > /usr/local/bin/docker <<'DOCKEREOF'
+          #!/bin/bash
+          # Fake docker that simulates kaniko executor behavior
+          if [ "$1" = "pull" ]; then
+            echo "Pulling image (simulated): $3"
+            exit 0
+          fi
+          if [ "$1" = "run" ]; then
+            # Find the outputs directory from -v args
+            OUTPUTS_DIR=""
+            for arg in "$@"; do
+              case "$arg" in
+                *":/kaniko/action/outputs")
+                  OUTPUTS_DIR="${arg%%:*}"
+                  ;;
+              esac
+            done
+            if [ -n "$OUTPUTS_DIR" ]; then
+              mkdir -p "$OUTPUTS_DIR"
+              printf 'sha256:a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3' > "$OUTPUTS_DIR/digest"
+            fi
+            exit 0
+          fi
+          echo "Unknown docker command: $1" >&2
+          exit 1
+          DOCKEREOF
+          chmod +x /usr/local/bin/docker
+      - id: build
+        uses: .
+        with:
+          push: 'false'
+          context: ${{ github.workspace }}/tests/fixtures
+          file: ${{ github.workspace }}/tests/fixtures/Dockerfile
+      - name: Assert digest is set
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "digest: $DIGEST"
+          if [ -z "$DIGEST" ]; then
+            echo "FAIL: expected digest to be non-empty"
+            exit 1
+          fi
+          if ! echo "$DIGEST" | grep -qE '^sha256:[0-9a-f]{64}$'; then
+            echo "FAIL: digest does not match expected sha256 format: $DIGEST"
+            exit 1
+          fi
+          echo "PASS: digest is $DIGEST"
