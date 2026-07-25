@@ -1,0 +1,37 @@
+name: Test basic usage (build with mock docker)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install mock docker
+        run: |
+          mkdir -p "$HOME/.docker"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/mock-docker.sh" /usr/local/bin/docker
+          chmod +x /usr/local/bin/docker
+          # Verify mock is in place
+          which docker
+          docker --version || true
+
+      - id: action
+        uses: .
+        with:
+          executor: gcr.io/kaniko-project/executor:v1.24.0
+          push: 'false'
+          tags: localhost:5000/test-basic:latest
+          context: ${{ github.workspace }}/tests/fixtures
+          file: ${{ github.workspace }}/tests/fixtures/Dockerfile
+
+      - name: Assert digest output is set
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "digest: $DIGEST"
+          if [ -z "$DIGEST" ]; then
+            echo "FAIL: expected digest output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: digest is $DIGEST"
