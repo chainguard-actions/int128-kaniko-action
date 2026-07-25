@@ -15,6 +15,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.65.0 | [`v1.65.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.65.0) | [`08a701b`](https://github.com/int128/kaniko-action/commit/08a701b559181d5a601279bff854a1cce4d93beb) |
 | v1.66.0 | [`v1.66.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.66.0) | [`2983b36`](https://github.com/int128/kaniko-action/commit/2983b369dd0329cc044355d4e829eea048b56219) |
 | v1.67.0 | [`v1.67.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.67.0) | [`e8b42be`](https://github.com/int128/kaniko-action/commit/e8b42bea2cca90bd7f10cb115ea40cb59198296e) |
+| v1.68.0 | [`v1.68.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.68.0) | [`a96c35b`](https://github.com/int128/kaniko-action/commit/a96c35b182f5ae5d784022de003fe2d626871780) |
 
 ## Privacy
 
