@@ -1,4 +1,4 @@
-name: Test basic usage (no-push build)
+name: Test labels and tags (no-push)
 on:
   workflow_dispatch:
 jobs:
@@ -11,11 +11,10 @@ jobs:
         run: |
           sudo cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker.sh" /usr/local/bin/docker
           sudo chmod +x /usr/local/bin/docker
-          # Verify fake docker is on PATH
           which docker
           docker --version || true
 
-      - name: Run kaniko action (no-push)
+      - name: Run kaniko action with labels and tags (no-push)
         id: action
         uses: .
         with:
@@ -23,6 +22,12 @@ jobs:
           context: ${{ github.workspace }}/tests/fixtures/basic
           file: ${{ github.workspace }}/tests/fixtures/basic/Dockerfile
           push: 'false'
+          tags: |
+            localhost/test-image:latest
+            localhost/test-image:1.0.0
+          labels: |
+            org.opencontainers.image.title=test-image
+            org.opencontainers.image.version=1.0.0
 
       - name: Assert digest output is set
         env:

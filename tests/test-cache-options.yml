@@ -1,4 +1,4 @@
-name: Test cache options
+name: Test cache-repository and cache-ttl inputs
 on:
   workflow_dispatch:
 jobs:
@@ -6,16 +6,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+
+      - name: Install fake docker
+        run: |
+          sudo cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker.sh" /usr/local/bin/docker
+          sudo chmod +x /usr/local/bin/docker
+          which docker
+          docker --version || true
+
+      - name: Run kaniko action with cache options
+        id: action
         uses: .
         with:
-          cache: 'false'
-          cache-repository: ghcr.io/example/cache
-          cache-ttl: 24h
+          executor: gcr.io/kaniko-project/executor:v1.24.0
+          context: ${{ github.workspace }}/tests/fixtures/basic
+          file: ${{ github.workspace }}/tests/fixtures/basic/Dockerfile
           push: 'false'
-          tags: |
-            ghcr.io/example/image:cache-test
-      - name: Assert action completed
+          cache: 'true'
+          cache-repository: ghcr.io/example/cache-repo
+          cache-ttl: 24h
+
+      - name: Assert digest output is set
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
         run: |
-          echo "Action completed successfully with cache-repository and cache-ttl inputs"
-          echo "PASS"
+          echo "digest: $DIGEST"
+          if [ -z "$DIGEST" ]; then
+            echo "FAIL: expected digest output to be non-empty"
+            exit 1
+          fi
+          if echo "$DIGEST" | grep -qE '^sha256:[0-9a-f]{64}$'; then
+            echo "PASS: digest is $DIGEST"
+          else
+            echo "FAIL: expected digest to match sha256:<hex64>, got: $DIGEST"
+            exit 1
+          fi

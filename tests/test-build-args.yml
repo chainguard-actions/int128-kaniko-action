@@ -1,4 +1,4 @@
-name: Test build with build-args
+name: Test build-args
 on:
   workflow_dispatch:
 jobs:
@@ -6,52 +6,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Install fake docker for kaniko simulation
+
+      - name: Install fake docker
         run: |
-          cat > /usr/local/bin/docker <<'DOCKEREOF'
-          #!/bin/bash
-          if [ "$1" = "pull" ]; then
-            echo "Pulling image (simulated): $3"
-            exit 0
-          fi
-          if [ "$1" = "run" ]; then
-            OUTPUTS_DIR=""
-            for arg in "$@"; do
-              case "$arg" in
-                *":/kaniko/action/outputs")
-                  OUTPUTS_DIR="${arg%%:*}"
-                  ;;
-              esac
-            done
-            if [ -n "$OUTPUTS_DIR" ]; then
-              mkdir -p "$OUTPUTS_DIR"
-              printf 'sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824' > "$OUTPUTS_DIR/digest"
-            fi
-            exit 0
-          fi
-          echo "Unknown docker command: $1" >&2
-          exit 1
-          DOCKEREOF
-          chmod +x /usr/local/bin/docker
-      - id: build
+          sudo cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker.sh" /usr/local/bin/docker
+          sudo chmod +x /usr/local/bin/docker
+          which docker
+          docker --version || true
+
+      - name: Run kaniko action with build-args (no-push)
+        id: action
         uses: .
         with:
+          executor: gcr.io/kaniko-project/executor:v1.24.0
+          context: ${{ github.workspace }}/tests/fixtures/build-args
+          file: ${{ github.workspace }}/tests/fixtures/build-args/Dockerfile
           push: 'false'
-          context: ${{ github.workspace }}/tests/fixtures
-          file: ${{ github.workspace }}/tests/fixtures/Dockerfile
           build-args: |
-            MY_VERSION=1.2.3
-      - name: Assert digest is set
+            MY_ARG=hello-from-test
+
+      - name: Assert digest output is set
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
+          DIGEST: ${{ steps.action.outputs.digest }}
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest to be non-empty"
+            echo "FAIL: expected digest output to be non-empty"
             exit 1
           fi
-          if ! echo "$DIGEST" | grep -qE '^sha256:[0-9a-f]{64}$'; then
-            echo "FAIL: digest does not match expected sha256 format: $DIGEST"
+          if echo "$DIGEST" | grep -qE '^sha256:[0-9a-f]{64}$'; then
+            echo "PASS: digest is $DIGEST"
+          else
+            echo "FAIL: expected digest to match sha256:<hex64>, got: $DIGEST"
             exit 1
           fi
-          echo "PASS: digest is $DIGEST"
