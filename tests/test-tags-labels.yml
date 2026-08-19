@@ -1,4 +1,4 @@
-name: Test build with cache options
+name: Test build with tags and labels
 on:
   workflow_dispatch:
 jobs:
@@ -20,9 +20,14 @@ jobs:
           context: tests/fixtures/simple
           file: tests/fixtures/simple/Dockerfile
           push: 'false'
-          cache: 'true'
-          cache-repository: ghcr.io/example/cache-repo
-          cache-ttl: 24h
+          tags: |
+            myimage:latest
+            myimage:1.0.0
+          labels: |
+            org.opencontainers.image.title=Test Image
+            org.opencontainers.image.version=1.0.0
+        env:
+          FAKE_DOCKER_SCENARIO: tags-labels
 
       - name: Assert digest output is set
         env:
@@ -30,7 +35,7 @@ jobs:
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty when using cache options"
+            echo "FAIL: expected digest output to be non-empty when using tags and labels"
             exit 1
           fi
           echo "PASS: digest is set to $DIGEST"

@@ -1,4 +1,4 @@
-name: Test build with cache options
+name: Test build with verbosity and extra kaniko args
 on:
   workflow_dispatch:
 jobs:
@@ -20,9 +20,11 @@ jobs:
           context: tests/fixtures/simple
           file: tests/fixtures/simple/Dockerfile
           push: 'false'
-          cache: 'true'
-          cache-repository: ghcr.io/example/cache-repo
-          cache-ttl: 24h
+          verbosity: info
+          kaniko-args: |
+            --snapshot-mode=redo
+        env:
+          FAKE_DOCKER_SCENARIO: verbosity
 
       - name: Assert digest output is set
         env:
@@ -30,7 +32,7 @@ jobs:
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty when using cache options"
+            echo "FAIL: expected digest output to be non-empty when using verbosity and kaniko-args"
             exit 1
           fi
           echo "PASS: digest is set to $DIGEST"

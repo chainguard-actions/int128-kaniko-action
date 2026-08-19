@@ -1,4 +1,4 @@
-name: Test build with cache options
+name: Test basic usage - build without push
 on:
   workflow_dispatch:
 jobs:
@@ -13,6 +13,8 @@ jobs:
           chmod +x /usr/local/bin/docker
           echo "Fake docker installed at /usr/local/bin/docker"
           which docker
+        env:
+          FAKE_DOCKER_SCENARIO: basic
 
       - id: action
         uses: .
@@ -20,9 +22,8 @@ jobs:
           context: tests/fixtures/simple
           file: tests/fixtures/simple/Dockerfile
           push: 'false'
-          cache: 'true'
-          cache-repository: ghcr.io/example/cache-repo
-          cache-ttl: 24h
+        env:
+          FAKE_DOCKER_SCENARIO: basic
 
       - name: Assert digest output is set
         env:
@@ -30,7 +31,7 @@ jobs:
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty when using cache options"
+            echo "FAIL: expected digest output to be non-empty"
             exit 1
           fi
           echo "PASS: digest is set to $DIGEST"

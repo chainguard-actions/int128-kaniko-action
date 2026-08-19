@@ -1,4 +1,4 @@
-name: Test build with build-args and labels
+name: Test build with build args
 on:
   workflow_dispatch:
 jobs:
@@ -7,62 +7,42 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up mock docker
+      - name: Install fake docker
         run: |
-          mkdir -p "$HOME/bin"
-          cat > "$HOME/bin/docker" <<'MOCKEOF'
-          #!/bin/bash
-          set -e
-          if [ "$1" = "pull" ]; then
-            echo "Mock: docker pull $2"
-            exit 0
-          fi
-          if [ "$1" = "run" ]; then
-            echo "Mock: docker run called"
-            prev=""
-            for arg in "$@"; do
-              if [ "$prev" = "-v" ]; then
-                host_path="${arg%%:*}"
-                rest="${arg#*:}"
-                container_path="${rest%%:*}"
-                if [ "$container_path" = "/kaniko/action/outputs" ]; then
-                  echo "sha256:abc123fakedigest" > "$host_path/digest"
-                  echo "Mock: wrote digest to $host_path/digest"
-                fi
-              fi
-              prev="$arg"
-            done
-            exit 0
-          fi
-          echo "Mock: unknown docker command: $@"
-          exit 1
-          MOCKEOF
-          chmod +x "$HOME/bin/docker"
-          echo "$HOME/bin" >> "$GITHUB_PATH"
-
-      - name: Prepare docker config
-        run: |
-          mkdir -p "$HOME/.docker"
-          echo '{}' > "$HOME/.docker/config.json"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker.sh" /usr/local/bin/docker
+          chmod +x /usr/local/bin/docker
+          echo "Fake docker installed at /usr/local/bin/docker"
+          which docker
 
       - id: action
         uses: .
         with:
+          context: tests/fixtures/buildargs
+          file: tests/fixtures/buildargs/Dockerfile
           push: 'false'
-          context: ${{ github.workspace }}/pristine/int128--kaniko-action/v1.65.0/tests/fixtures/build-args
           build-args: |
-            MY_ARG=hello-world
-          labels: |
-            org.opencontainers.image.title=test-image
-            org.opencontainers.image.version=1.0.0
+            MY_ARG=hello-from-test
+        env:
+          FAKE_DOCKER_SCENARIO: buildargs
 
-      - name: Assert digest output
+      - name: Assert digest output is set
         env:
           DIGEST: ${{ steps.action.outputs.digest }}
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty"
+            echo "FAIL: expected digest output to be non-empty when using build-args"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: digest is set to $DIGEST"
+
+      - name: Assert digest looks like a sha256 digest
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "digest: $DIGEST"
+          if ! echo "$DIGEST" | grep -qE '^sha256:[0-9a-f]{64}$'; then
+            echo "FAIL: digest does not match sha256 format: $DIGEST"
+            exit 1
+          fi
+          echo "PASS: digest has correct sha256 format"

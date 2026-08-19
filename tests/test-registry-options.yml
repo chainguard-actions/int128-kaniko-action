@@ -1,4 +1,4 @@
-name: Test build with cache options
+name: Test build with registry options (push-retry, registry-mirror, docker-run-args)
 on:
   workflow_dispatch:
 jobs:
@@ -20,9 +20,11 @@ jobs:
           context: tests/fixtures/simple
           file: tests/fixtures/simple/Dockerfile
           push: 'false'
-          cache: 'true'
-          cache-repository: ghcr.io/example/cache-repo
-          cache-ttl: 24h
+          push-retry: '3'
+          registry-mirror: |
+            mirror.gcr.io
+          docker-run-args: |
+            --env=MY_VAR=test
 
       - name: Assert digest output is set
         env:
@@ -30,7 +32,7 @@ jobs:
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty when using cache options"
+            echo "FAIL: expected digest output to be non-empty when using registry options"
             exit 1
           fi
           echo "PASS: digest is set to $DIGEST"

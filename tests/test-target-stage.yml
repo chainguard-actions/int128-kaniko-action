@@ -1,4 +1,4 @@
-name: Test build with cache options
+name: Test build with target stage
 on:
   workflow_dispatch:
 jobs:
@@ -17,12 +17,12 @@ jobs:
       - id: action
         uses: .
         with:
-          context: tests/fixtures/simple
-          file: tests/fixtures/simple/Dockerfile
+          context: tests/fixtures/multistage
+          file: tests/fixtures/multistage/Dockerfile
           push: 'false'
-          cache: 'true'
-          cache-repository: ghcr.io/example/cache-repo
-          cache-ttl: 24h
+          target: builder
+        env:
+          FAKE_DOCKER_SCENARIO: target-stage
 
       - name: Assert digest output is set
         env:
@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "digest: $DIGEST"
           if [ -z "$DIGEST" ]; then
-            echo "FAIL: expected digest output to be non-empty when using cache options"
+            echo "FAIL: expected digest output to be non-empty when targeting a stage"
             exit 1
           fi
           echo "PASS: digest is set to $DIGEST"
