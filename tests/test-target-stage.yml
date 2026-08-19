@@ -1,0 +1,37 @@
+name: Test build with target stage (no push)
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install fake docker
+        run: |
+          FAKE_DIR="$GITHUB_WORKSPACE/tests/fixtures/fake-docker"
+          mkdir -p /tmp/fake-bin
+          cp "$FAKE_DIR/docker" /tmp/fake-bin/docker
+          chmod +x /tmp/fake-bin/docker
+          echo "/tmp/fake-bin" >> "$GITHUB_PATH"
+
+      - id: action
+        uses: .
+        with:
+          executor: fake-executor:latest
+          push: 'false'
+          context: tests/fixtures/multistage
+          file: tests/fixtures/multistage/Dockerfile
+          target: base
+
+      - name: Assert digest output is set for target stage
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "digest: $DIGEST"
+          if [ -z "$DIGEST" ]; then
+            echo "FAIL: expected digest output to be non-empty when building target stage"
+            exit 1
+          fi
+          echo "PASS: digest is $DIGEST"

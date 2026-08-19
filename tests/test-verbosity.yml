@@ -1,4 +1,4 @@
-name: Test basic build (no push)
+name: Test build with verbosity
 on:
   workflow_dispatch:
 jobs:
@@ -20,17 +20,19 @@ jobs:
             echo "Mock: docker run invoked"
             # Parse -v args to find the outputs mount: <host_path>:/kaniko/action/outputs
             outputs_host_dir=""
+            found_verbosity=false
             prev=""
             for arg in "$@"; do
               if [ "$prev" = "-v" ]; then
-                # Check if this volume mount targets /kaniko/action/outputs
                 host_part="${arg%%:*}"
                 container_part="${arg#*:}"
-                # strip :ro or :rw suffix
                 container_part="${container_part%%:*}"
                 if [ "$container_part" = "/kaniko/action/outputs" ]; then
                   outputs_host_dir="$host_part"
                 fi
+              fi
+              if [ "$prev" = "--verbosity" ] && [ "$arg" = "info" ]; then
+                found_verbosity=true
               fi
               prev="$arg"
             done
@@ -39,6 +41,10 @@ jobs:
               echo "Mock: wrote digest to $outputs_host_dir/digest"
             else
               echo "ERROR: could not find /kaniko/action/outputs mount" >&2
+              exit 1
+            fi
+            if [ "$found_verbosity" = "false" ]; then
+              echo "ERROR: --verbosity info not found in args: $@" >&2
               exit 1
             fi
             exit 0
@@ -54,7 +60,8 @@ jobs:
           push: 'false'
           context: ${{ github.workspace }}/pristine/int128--kaniko-action/v1.62.0/tests/fixtures
           file: ${{ github.workspace }}/pristine/int128--kaniko-action/v1.62.0/tests/fixtures/Dockerfile
-          tags: localhost/test-image:basic
+          tags: localhost/test-image:verbosity
+          verbosity: info
       - name: Assert action completed successfully
         env:
           DIGEST: ${{ steps.action.outputs.digest }}

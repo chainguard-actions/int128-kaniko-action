@@ -1,0 +1,67 @@
+#!/bin/sh
+# Fake docker: intercepts 'docker pull' (no-op) and 'docker run' (writes fake digest)
+# This allows testing the kaniko-action without a real Docker registry or kaniko executor.
+#
+# The kaniko-action passes:
+#   -v <outputsDir>:/kaniko/action/outputs
+#   --digest-file /kaniko/action/outputs/digest
+#
+# We resolve the container path to the host path via the volume mount.
+
+CMD="${1:-}"
+shift || true
+
+case "$CMD" in
+  pull)
+    # No-op: pretend the pull succeeded
+    echo "Fake docker: pull succeeded (no-op)"
+    exit 0
+    ;;
+  run)
+    # Parse args to find volume mounts and --digest-file
+    OUTPUTS_HOST_DIR=""
+    DIGEST_CONTAINER_PATH=""
+    prev=""
+    for arg in "$@"; do
+      case "$prev" in
+        -v|--volume)
+          # Format: hostpath:containerpath[:options]
+          host_part="$(echo "$arg" | cut -d: -f1)"
+          container_part="$(echo "$arg" | cut -d: -f2)"
+          if [ "$container_part" = "/kaniko/action/outputs" ]; then
+            OUTPUTS_HOST_DIR="$host_part"
+          fi
+          ;;
+        --digest-file)
+          DIGEST_CONTAINER_PATH="$arg"
+          ;;
+      esac
+      prev="$arg"
+    done
+
+    echo "Fake docker: outputs_host_dir=$OUTPUTS_HOST_DIR"
+    echo "Fake docker: digest_container_path=$DIGEST_CONTAINER_PATH"
+
+    # Resolve container digest path to host path
+    if [ -n "$OUTPUTS_HOST_DIR" ] && [ -n "$DIGEST_CONTAINER_PATH" ]; then
+      # Replace /kaniko/action/outputs prefix with the host dir
+      DIGEST_SUFFIX="$(echo "$DIGEST_CONTAINER_PATH" | sed 's|^/kaniko/action/outputs||')"
+      DIGEST_HOST_PATH="${OUTPUTS_HOST_DIR}${DIGEST_SUFFIX}"
+      printf 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' > "$DIGEST_HOST_PATH"
+      echo "Fake docker: wrote digest to $DIGEST_HOST_PATH"
+    else
+      echo "Fake docker: could not resolve digest path"
+      echo "  outputs_host_dir=$OUTPUTS_HOST_DIR"
+      echo "  digest_container_path=$DIGEST_CONTAINER_PATH"
+      exit 1
+    fi
+
+    echo "Fake docker: run complete"
+    exit 0
+    ;;
+  *)
+    # For any other docker command, succeed silently
+    echo "Fake docker: ignoring command '$CMD'"
+    exit 0
+    ;;
+esac

@@ -1,5 +1,6 @@
 name: kaniko-action
 description: Kaniko in GitHub Actions
+
 inputs:
   executor:
     description: Image of Kaniko executor
@@ -30,6 +31,7 @@ inputs:
   docker-run-args:
     description: Extra args to docker run (multiline)
     required: false
+
   # compatible with https://github.com/docker/build-push-action
   build-args:
     description: List of build args (multiline)
@@ -53,10 +55,12 @@ inputs:
   target:
     description: Target stage to build
     required: false
+
 outputs:
   digest:
     description: 'Image content-addressable identifier also called a digest'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'dist/index.js'
-  pre: chainguard-phonehome.js
