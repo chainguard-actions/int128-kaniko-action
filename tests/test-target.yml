@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test target input (multi-stage build)
 on:
   workflow_dispatch:
 jobs:
@@ -29,13 +29,11 @@ jobs:
           RUNNER_TEMP: ${{ github.workspace }}/_runner_temp
         with:
           executor: fake/kaniko-executor:latest
-          context: tests/fixtures/basic
+          context: tests/fixtures/multi-stage
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-target:latest
+          target: builder
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +44,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with target=builder, digest: $DIGEST"

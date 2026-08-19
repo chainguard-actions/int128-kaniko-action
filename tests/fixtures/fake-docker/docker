@@ -1,0 +1,44 @@
+#!/bin/sh
+# Fake docker that intercepts kaniko-action's docker calls.
+# - 'docker pull': no-op (avoids registry requirement)
+# - 'docker run': parses volume mounts to find the outputs dir and writes a fake digest
+# - everything else: delegates to real docker at /usr/bin/docker
+
+case "$1" in
+  pull)
+    echo "fake-docker: pull $2 (no-op)"
+    exit 0
+    ;;
+  run)
+    # Parse the docker run arguments to find the volume mount for /kaniko/action/outputs
+    # The action mounts: -v HOST_PATH:/kaniko/action/outputs
+    # and passes: --digest-file /kaniko/action/outputs/digest
+    outputs_host_dir=""
+    prev=""
+    for arg in "$@"; do
+      if [ "$prev" = "-v" ] || [ "$prev" = "--volume" ]; then
+        # arg is like "HOST_PATH:/kaniko/action/outputs" or "HOST_PATH:/kaniko/action/outputs:ro"
+        case "$arg" in
+          *:/kaniko/action/outputs*)
+            outputs_host_dir="${arg%%:*}"
+            ;;
+        esac
+      fi
+      prev="$arg"
+    done
+
+    if [ -n "$outputs_host_dir" ]; then
+      digest_file="${outputs_host_dir}/digest"
+      printf 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' > "$digest_file"
+      echo "fake-docker: wrote digest to $digest_file"
+    else
+      echo "fake-docker: WARNING: could not find /kaniko/action/outputs mount"
+      echo "fake-docker: args were: $*"
+    fi
+    echo "fake-docker: run complete (no-op)"
+    exit 0
+    ;;
+  *)
+    exec /usr/bin/docker "$@"
+    ;;
+esac

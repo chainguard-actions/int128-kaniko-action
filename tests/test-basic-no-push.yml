@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test basic no-push build
 on:
   workflow_dispatch:
 jobs:
@@ -18,6 +18,10 @@ jobs:
 
       - name: Install fake docker to intercept kaniko-action calls
         run: |
+          # Prepend fake docker dir to PATH so the action uses our mock
+          cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker/docker" /usr/local/bin/fake-docker
+          chmod +x /usr/local/bin/fake-docker
+          # Create a wrapper at a higher-priority PATH location
           mkdir -p "$GITHUB_WORKSPACE/_bin"
           cp "$GITHUB_WORKSPACE/tests/fixtures/fake-docker/docker" "$GITHUB_WORKSPACE/_bin/docker"
           chmod +x "$GITHUB_WORKSPACE/_bin/docker"
@@ -32,10 +36,7 @@ jobs:
           context: tests/fixtures/basic
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-image:latest
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +47,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with digest: $DIGEST"

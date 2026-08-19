@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test docker-run-args input
 on:
   workflow_dispatch:
 jobs:
@@ -32,10 +32,9 @@ jobs:
           context: tests/fixtures/basic
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-docker-run-args:latest
+          docker-run-args: |
+            --env MY_VAR=test-value
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +45,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with docker-run-args, digest: $DIGEST"

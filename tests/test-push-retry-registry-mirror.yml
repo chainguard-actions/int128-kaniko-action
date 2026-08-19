@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test push-retry and registry-mirror inputs
 on:
   workflow_dispatch:
 jobs:
@@ -32,10 +32,11 @@ jobs:
           context: tests/fixtures/basic
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-retry-mirror:latest
+          push-retry: '3'
+          registry-mirror: |
+            mirror1.example.com
+            mirror2.example.com
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +47,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with push-retry and registry-mirror, digest: $DIGEST"

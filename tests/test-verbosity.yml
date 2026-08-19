@@ -1,4 +1,4 @@
-name: Test basic build (no push)
+name: Test build with verbosity setting
 on:
   workflow_dispatch:
 jobs:
@@ -23,7 +23,6 @@ jobs:
             PREV=""
             for arg in "$@"; do
               if [ "$PREV" = "-v" ]; then
-                # Extract host path from -v host:container format
                 HOST=$(echo "$arg" | cut -d: -f1)
                 CONTAINER=$(echo "$arg" | cut -d: -f2 | cut -d: -f1)
                 if [ "$CONTAINER" = "/kaniko/action/outputs" ]; then
@@ -33,7 +32,7 @@ jobs:
               PREV="$arg"
             done
             if [ -n "$OUTPUTS_DIR" ]; then
-              echo "sha256:abc123def456abc123def456abc123def456abc123def456abc123def456abc123" > "$OUTPUTS_DIR/digest"
+              echo "sha256:cafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe" > "$OUTPUTS_DIR/digest"
               echo "mock: wrote digest to $OUTPUTS_DIR/digest"
             else
               echo "mock: WARNING: could not find outputs dir"
@@ -54,6 +53,7 @@ jobs:
           context: ${{ github.workspace }}/tests/fixtures
           file: ${{ github.workspace }}/tests/fixtures/Dockerfile
           push: 'false'
+          verbosity: info
       - name: Assert digest output is set
         env:
           DIGEST: ${{ steps.action.outputs.digest }}
@@ -63,4 +63,4 @@ jobs:
             echo "FAIL: expected digest output to be non-empty"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: action completed with verbosity=info"

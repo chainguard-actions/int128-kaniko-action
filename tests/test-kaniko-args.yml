@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test kaniko-args input
 on:
   workflow_dispatch:
 jobs:
@@ -32,10 +32,10 @@ jobs:
           context: tests/fixtures/basic
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-kaniko-args:latest
+          kaniko-args: |
+            --cleanup
+            --log-timestamp
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +46,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with kaniko-args, digest: $DIGEST"

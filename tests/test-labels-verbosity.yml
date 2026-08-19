@@ -1,4 +1,4 @@
-name: Test cache options (cache-repository and cache-ttl)
+name: Test labels and verbosity
 on:
   workflow_dispatch:
 jobs:
@@ -32,10 +32,11 @@ jobs:
           context: tests/fixtures/basic
           push: 'false'
           tags: |
-            localhost/test-cache:latest
-          cache: 'true'
-          cache-repository: localhost/test-cache-repo
-          cache-ttl: 24h
+            localhost/test-labels:latest
+          labels: |
+            org.opencontainers.image.title=test-image
+            org.opencontainers.image.version=1.0.0
+          verbosity: info
 
       - name: Assert action completed successfully
         env:
@@ -46,4 +47,4 @@ jobs:
             echo "FAIL: expected a non-empty digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with cache-repository and cache-ttl, digest: $DIGEST"
+          echo "PASS: action completed successfully with labels and verbosity, digest: $DIGEST"
