@@ -1,4 +1,4 @@
-name: Test build with build-args and labels
+name: Test build with extra kaniko-args and docker-run-args
 on:
   workflow_dispatch:
 jobs:
@@ -15,18 +15,16 @@ jobs:
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
       - id: build
-        name: Run kaniko-action with build-args and labels
+        name: Run kaniko-action with extra args
         uses: .
         with:
-          context: tests/fixtures/multistage
-          file: tests/fixtures/multistage/Dockerfile
+          context: tests/fixtures/basic
+          file: tests/fixtures/basic/Dockerfile
           push: 'false'
-          build-args: |
-            APP_VERSION=1.2.3
-          labels: |
-            org.opencontainers.image.version=1.2.3
-            org.opencontainers.image.source=https://github.com/test/repo
-          target: base
+          kaniko-args: |
+            --log-format=text
+          docker-run-args: |
+            --memory=2g
 
       - name: Assert action completed
         env:
@@ -37,4 +35,4 @@ jobs:
             echo "FAIL: expected a digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with build-args and labels"
+          echo "PASS: action completed successfully with extra kaniko-args and docker-run-args"

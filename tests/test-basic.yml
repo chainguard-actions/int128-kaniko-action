@@ -1,4 +1,4 @@
-name: Test build with build-args and labels
+name: Test basic build (no push)
 on:
   workflow_dispatch:
 jobs:
@@ -15,18 +15,12 @@ jobs:
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
       - id: build
-        name: Run kaniko-action with build-args and labels
+        name: Run kaniko-action (no push)
         uses: .
         with:
-          context: tests/fixtures/multistage
-          file: tests/fixtures/multistage/Dockerfile
+          context: tests/fixtures/basic
+          file: tests/fixtures/basic/Dockerfile
           push: 'false'
-          build-args: |
-            APP_VERSION=1.2.3
-          labels: |
-            org.opencontainers.image.version=1.2.3
-            org.opencontainers.image.source=https://github.com/test/repo
-          target: base
 
       - name: Assert action completed
         env:
@@ -37,4 +31,4 @@ jobs:
             echo "FAIL: expected a digest output"
             exit 1
           fi
-          echo "PASS: action completed successfully with build-args and labels"
+          echo "PASS: action completed successfully"

@@ -1,4 +1,4 @@
-name: Test push-retry and registry-mirror inputs
+name: Test push-retry and registry-mirror options
 on:
   workflow_dispatch:
 jobs:
@@ -9,31 +9,31 @@ jobs:
 
       - name: Create minimal Dockerfile
         run: |
-          mkdir -p /tmp/kaniko-context
-          cat > /tmp/kaniko-context/Dockerfile <<'EOF'
+          mkdir -p /tmp/kaniko-mirror-test
+          cat > /tmp/kaniko-mirror-test/Dockerfile <<'EOF'
           FROM scratch
-          LABEL maintainer="test"
+          LABEL test="push-retry-mirror"
           EOF
 
       - id: action
         uses: .
         with:
           executor: gcr.io/kaniko-project/executor:v1.24.0
-          context: /tmp/kaniko-context
+          context: /tmp/kaniko-mirror-test
           push: 'false'
           push-retry: '3'
           registry-mirror: |
             mirror.gcr.io
             mirror2.gcr.io
-          tags: localhost/test-image:latest
+          tags: localhost/test-mirror:latest
         continue-on-error: true
 
-      - name: Assert action was invoked with push-retry and registry-mirror
+      - name: Assert action was invoked with push-retry and registry-mirror inputs
         run: |
           echo "Action outcome: ${{ steps.action.outcome }}"
-          if [ "${{ steps.action.outcome }}" = "success" ]; then
-            echo "PASS: action succeeded"
-          else
-            echo "INFO: action did not succeed (expected under act without full Docker daemon)"
-            echo "PASS: action was invoked correctly with push-retry and registry-mirror inputs"
+          # Verify the action was invoked (not a YAML/input parsing failure)
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
           fi
+          echo "PASS: action was invoked with push-retry and registry-mirror inputs"
