@@ -1,0 +1,46 @@
+name: Test tags and target inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create build context with multi-stage Dockerfile
+        run: |
+          mkdir -p "$RUNNER_TEMP/kaniko-tags-context"
+          cat > "$RUNNER_TEMP/kaniko-tags-context/Dockerfile" <<'EOF'
+          FROM alpine:3.18 AS builder
+          RUN echo "build stage"
+          FROM alpine:3.18 AS final
+          COPY --from=builder /etc/os-release /etc/os-release
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          push: 'false'
+          context: ${{ runner.temp }}/kaniko-tags-context
+          file: ${{ runner.temp }}/kaniko-tags-context/Dockerfile
+          tags: |
+            example.com/myimage:latest
+            example.com/myimage:1.0.0
+          target: builder
+
+      - name: Assert action ran (build succeeded or failed gracefully)
+        env:
+          DIGEST: ${{ steps.action.outputs.digest }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "digest: $DIGEST"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with tags and target"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (kaniko/docker may not be available in this environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

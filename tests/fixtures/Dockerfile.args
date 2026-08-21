@@ -1,0 +1,5 @@
+FROM alpine:3.19
+ARG MY_ARG=default
+ARG ANOTHER_ARG=another_default
+LABEL test.label="test-value"
+RUN echo "build arg: $MY_ARG" && echo "another: $ANOTHER_ARG"
