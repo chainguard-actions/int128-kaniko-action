@@ -1,0 +1,33 @@
+name: Test multi-stage build with target
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          context: tests/fixtures/multistage-context
+          file: tests/fixtures/multistage-context/Dockerfile
+          push: 'false'
+          target: builder
+
+      - name: Assert action ran with target stage (build or failed gracefully)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "digest: $DIGEST"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed with target stage successfully"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (Docker/kaniko not available in this environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

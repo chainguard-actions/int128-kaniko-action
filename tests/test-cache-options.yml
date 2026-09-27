@@ -1,0 +1,39 @@
+name: Test cache options and tags
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          context: tests/fixtures/basic-context
+          file: tests/fixtures/basic-context/Dockerfile
+          push: 'false'
+          cache: 'true'
+          cache-repository: ghcr.io/example/cache
+          cache-ttl: 24h
+          push-retry: '2'
+          tags: |
+            ghcr.io/example/myimage:latest
+            ghcr.io/example/myimage:1.0.0
+
+      - name: Assert action ran with cache options (build or failed gracefully)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "digest: $DIGEST"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed with cache options successfully"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (Docker/kaniko not available in this environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

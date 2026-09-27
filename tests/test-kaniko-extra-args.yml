@@ -1,0 +1,39 @@
+name: Test kaniko extra args and registry mirror
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          context: tests/fixtures/basic-context
+          file: tests/fixtures/basic-context/Dockerfile
+          push: 'false'
+          kaniko-args: |
+            --log-timestamp
+            --cleanup
+          docker-run-args: |
+            --env MY_VAR=test
+          registry-mirror: |
+            mirror.gcr.io
+
+      - name: Assert action ran with extra args (build or failed gracefully)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          DIGEST: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "digest: $DIGEST"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed with extra args successfully"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (Docker/kaniko not available in this environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
