@@ -6,19 +6,19 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.61.0 | [`v1.61.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.61.0) | [`da269a7`](https://github.com/int128/kaniko-action/commit/da269a7a54e14f122d2aeccb80d86755876ca1bf) |
-| v1.62.0 | [`v1.62.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.62.0) | [`56c20b6`](https://github.com/int128/kaniko-action/commit/56c20b6005e52f650d9d6cbf58f7bf7f8e0184bb) |
-| v1.63.0 | [`v1.63.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.63.0) | [`d018e2f`](https://github.com/int128/kaniko-action/commit/d018e2f85131120444662f019b17e017b2545e69) |
-| v1.64.0 | [`v1.64.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.64.0) | [`a0a6dbf`](https://github.com/int128/kaniko-action/commit/a0a6dbfbc587c46807c6367bc0118f01edd11764) |
-| v1.65.0 | [`v1.65.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.65.0) | [`08a701b`](https://github.com/int128/kaniko-action/commit/08a701b559181d5a601279bff854a1cce4d93beb) |
-| v1.66.0 | [`v1.66.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.66.0) | [`2983b36`](https://github.com/int128/kaniko-action/commit/2983b369dd0329cc044355d4e829eea048b56219) |
-| v1.67.0 | [`v1.67.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.67.0) | [`e8b42be`](https://github.com/int128/kaniko-action/commit/e8b42bea2cca90bd7f10cb115ea40cb59198296e) |
-| v1.68.0 | [`v1.68.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.68.0) | [`a96c35b`](https://github.com/int128/kaniko-action/commit/a96c35b182f5ae5d784022de003fe2d626871780) |
-| v1.69.0 | [`v1.69.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.69.0) | [`4162b90`](https://github.com/int128/kaniko-action/commit/4162b90e367d6644673112c523199e1839d7c547) |
-| v1.70.0 | [`v1.70.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.70.0) | [`d7a73c0`](https://github.com/int128/kaniko-action/commit/d7a73c060b441818e933d9cfffd175327c13dd0a) |
-| v1.71.0 | [`v1.71.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.71.0) | [`da549d8`](https://github.com/int128/kaniko-action/commit/da549d896146f42edd8f3591ca9d2f8a327365a2) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1.61.0 | [`v1.61.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.61.0) | [`da269a7`](https://github.com/int128/kaniko-action/commit/da269a7a54e14f122d2aeccb80d86755876ca1bf) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.61.0/HARDENING.md) |
+| v1.62.0 | [`v1.62.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.62.0) | [`56c20b6`](https://github.com/int128/kaniko-action/commit/56c20b6005e52f650d9d6cbf58f7bf7f8e0184bb) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.62.0/HARDENING.md) |
+| v1.63.0 | [`v1.63.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.63.0) | [`d018e2f`](https://github.com/int128/kaniko-action/commit/d018e2f85131120444662f019b17e017b2545e69) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.63.0/HARDENING.md) |
+| v1.64.0 | [`v1.64.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.64.0) | [`a0a6dbf`](https://github.com/int128/kaniko-action/commit/a0a6dbfbc587c46807c6367bc0118f01edd11764) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.64.0/HARDENING.md) |
+| v1.65.0 | [`v1.65.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.65.0) | [`08a701b`](https://github.com/int128/kaniko-action/commit/08a701b559181d5a601279bff854a1cce4d93beb) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.65.0/HARDENING.md) |
+| v1.66.0 | [`v1.66.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.66.0) | [`2983b36`](https://github.com/int128/kaniko-action/commit/2983b369dd0329cc044355d4e829eea048b56219) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.66.0/HARDENING.md) |
+| v1.67.0 | [`v1.67.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.67.0) | [`e8b42be`](https://github.com/int128/kaniko-action/commit/e8b42bea2cca90bd7f10cb115ea40cb59198296e) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.67.0/HARDENING.md) |
+| v1.68.0 | [`v1.68.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.68.0) | [`a96c35b`](https://github.com/int128/kaniko-action/commit/a96c35b182f5ae5d784022de003fe2d626871780) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.68.0/HARDENING.md) |
+| v1.69.0 | [`v1.69.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.69.0) | [`4162b90`](https://github.com/int128/kaniko-action/commit/4162b90e367d6644673112c523199e1839d7c547) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.69.0/HARDENING.md) |
+| v1.70.0 | [`v1.70.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.70.0) | [`d7a73c0`](https://github.com/int128/kaniko-action/commit/d7a73c060b441818e933d9cfffd175327c13dd0a) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.70.0/HARDENING.md) |
+| v1.71.0 | [`v1.71.0`](https://github.com/chainguard-actions/int128-kaniko-action/tree/v1.71.0) | [`da549d8`](https://github.com/int128/kaniko-action/commit/da549d896146f42edd8f3591ca9d2f8a327365a2) | [`HARDENING.md`](https://github.com/chainguard-actions/int128-kaniko-action/blob/v1.71.0/HARDENING.md) |
 
 ## Privacy
 
