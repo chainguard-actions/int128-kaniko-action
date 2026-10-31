@@ -1,0 +1,5 @@
+FROM busybox AS builder
+RUN echo built > /built.txt
+
+FROM busybox AS runtime
+COPY --from=builder /built.txt /built.txt

@@ -1,0 +1,75 @@
+name: Test basic usage
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install fake docker on PATH
+        run: |
+          mkdir -p /tmp/fake-docker/bin
+          rm -f /tmp/fake-docker/calls.log /tmp/fake-docker/fail
+          cat > /tmp/fake-docker/bin/docker <<'EOF'
+          #!/bin/bash
+          LOG=/tmp/fake-docker/calls.log
+          { echo "---CALL---"; for a in "$@"; do printf '%s\n' "$a"; done; } >> "$LOG"
+          if [ "$1" = "pull" ]; then exit 0; fi
+          if [ "$1" = "run" ]; then
+            if [ -f /tmp/fake-docker/fail ]; then echo "simulated kaniko failure" >&2; exit 1; fi
+            prev=""
+            for a in "$@"; do
+              if [ "$prev" = "-v" ]; then
+                case "$a" in
+                  *:/kaniko/action/outputs)
+                    d="${a%:/kaniko/action/outputs}"
+                    echo "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" > "$d/digest"
+                    ;;
+                esac
+              fi
+              prev="$a"
+            done
+            exit 0
+          fi
+          exit 0
+          EOF
+          chmod +x /tmp/fake-docker/bin/docker
+          echo "/tmp/fake-docker/bin" >> "$GITHUB_PATH"
+      - id: action
+        uses: .
+        with:
+          context: tests/fixtures/app
+          tags: |
+            example.com/test/app:latest
+            example.com/test/app:v1
+      - name: Assert digest output
+        env:
+          ACTUAL: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ]; then
+            echo "FAIL: unexpected digest"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert docker invocation
+        run: |
+          LOG=/tmp/fake-docker/calls.log
+          cat "$LOG"
+          pair() { grep -A1 -xF -- "$1" "$LOG" | grep -qxF -- "$2" || { echo "FAIL: missing '$1 $2'"; exit 1; }; }
+          has() { grep -qxF -- "$1" "$LOG" || { echo "FAIL: missing '$1'"; exit 1; }; }
+          hasnot() { if grep -qxF -- "$1" "$LOG"; then echo "FAIL: unexpected '$1'"; exit 1; fi; }
+          pair pull -q
+          has "gcr.io/kaniko-project/executor:v1.24.0"
+          has run
+          pair -v "$GITHUB_WORKSPACE/tests/fixtures/app:/kaniko/action/context:ro"
+          pair -e container=docker
+          pair --context dir:///kaniko/action/context/
+          pair --digest-file /kaniko/action/outputs/digest
+          has --no-push
+          pair --destination example.com/test/app:latest
+          pair --destination example.com/test/app:v1
+          hasnot --dockerfile
+          hasnot --target
+          hasnot --cache=true
+          echo "PASS"

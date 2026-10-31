@@ -1,0 +1,78 @@
+name: Test build options (file, build-args, labels, target)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install fake docker on PATH
+        run: |
+          mkdir -p /tmp/fake-docker/bin
+          rm -f /tmp/fake-docker/calls.log /tmp/fake-docker/fail
+          cat > /tmp/fake-docker/bin/docker <<'EOF'
+          #!/bin/bash
+          LOG=/tmp/fake-docker/calls.log
+          { echo "---CALL---"; for a in "$@"; do echo "$a"; done; } >> "$LOG"
+          if [ "$1" = "pull" ]; then exit 0; fi
+          if [ "$1" = "run" ]; then
+            if [ -f /tmp/fake-docker/fail ]; then echo "simulated kaniko failure" >&2; exit 1; fi
+            prev=""
+            for a in "$@"; do
+              if [ "$prev" = "-v" ]; then
+                case "$a" in
+                  *:/kaniko/action/outputs)
+                    d="${a%:/kaniko/action/outputs}"
+                    echo "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" > "$d/digest"
+                    ;;
+                esac
+              fi
+              prev="$a"
+            done
+            exit 0
+          fi
+          exit 0
+          EOF
+          chmod +x /tmp/fake-docker/bin/docker
+          echo "/tmp/fake-docker/bin" >> "$GITHUB_PATH"
+      - id: action
+        uses: .
+        with:
+          executor: gcr.io/kaniko-project/executor:debug
+          context: tests/fixtures/app
+          file: tests/fixtures/app/Dockerfile.custom
+          target: runtime
+          build-args: |
+            GREETING=hi
+            VERSION=1.2.3
+          labels: |
+            org.opencontainers.image.title=app
+            org.opencontainers.image.version=1.2.3
+          tags: example.com/test/app:build
+      - name: Assert digest output
+        env:
+          ACTUAL: ${{ steps.action.outputs.digest }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ "$ACTUAL" != "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ]; then
+            echo "FAIL: unexpected digest"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert docker invocation
+        run: |
+          LOG=/tmp/fake-docker/calls.log
+          cat "$LOG"
+          pair() { grep -A1 -xF -- "$1" "$LOG" | grep -qxF -- "$2" || { echo "FAIL: missing '$1 $2'"; exit 1; }; }
+          has() { grep -qxF -- "$1" "$LOG" || { echo "FAIL: missing '$1'"; exit 1; }; }
+          pair -q gcr.io/kaniko-project/executor:debug
+          pair -v "$GITHUB_WORKSPACE/tests/fixtures/app:/kaniko/action/context:ro"
+          pair --dockerfile Dockerfile.custom
+          pair --target runtime
+          pair --build-arg GREETING=hi
+          pair --build-arg VERSION=1.2.3
+          pair --label org.opencontainers.image.title=app
+          pair --label org.opencontainers.image.version=1.2.3
+          pair --destination example.com/test/app:build
+          has --no-push
+          echo "PASS"
