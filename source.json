@@ -1,6 +1,16 @@
 {
   "owner": "int128",
   "repo": "kaniko-action",
-  "version": "",
-  "url": "https://github.com/int128/kaniko-action"
+  "version": "v1.73.0",
+  "commit_sha": "5375f3c42c963816579e4a688775f3b64403ddd1",
+  "url": "https://github.com/int128/kaniko-action",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/int128/kaniko-action/v1.73.0/sha256-beb1b9ad1493740e2dfaefefeaef1685e80d4db3f5c60cd851079853ec12a8c6.tar.gz",
+    "sha256": "beb1b9ad1493740e2dfaefefeaef1685e80d4db3f5c60cd851079853ec12a8c6",
+    "size_bytes": 549190
+  }
 }
